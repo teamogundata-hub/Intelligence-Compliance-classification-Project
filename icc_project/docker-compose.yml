@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # ICC API Server
+  # =============================================================================
+  icc-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    container_name: icc-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://icc_user:icc_password@postgres:5432/icc_db
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+      - MODEL_PATH=/app/checkpoints/best_model.pt
+    volumes:
+      - ./checkpoints:/app/checkpoints:ro
+      - audit_logs:/app/data/audit_logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # =============================================================================
+  # PostgreSQL Database (Audit Trail)
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: icc-postgres
+    environment:
+      POSTGRES_DB: icc_db
+      POSTGRES_USER: icc_user
+      POSTGRES_PASSWORD: icc_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U icc_user -d icc_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Redis (Caching & Rate Limiting)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: icc-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # =============================================================================
+  # Prometheus (Monitoring)
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: icc-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+
+  # =============================================================================
+  # Grafana (Dashboard)
+  # =============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: icc-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=icc_admin_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  audit_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

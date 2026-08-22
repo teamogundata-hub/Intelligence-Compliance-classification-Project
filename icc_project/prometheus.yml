@@ -1,0 +1,33 @@
+# ICC System Prometheus Configuration
+# Monitors model performance, API latency, and system health
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'icc-api'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['icc-api:8000']
+        labels:
+          service: 'icc-classifier'
+          environment: 'production'
+
+  - job_name: 'icc-postgres'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['postgres:9187']
+        labels:
+          service: 'audit-database'
+
+  - job_name: 'icc-redis'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['redis:9121']
+        labels:
+          service: 'cache-layer'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
