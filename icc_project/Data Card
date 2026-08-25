@@ -1,0 +1,101 @@
+# Data Card: Synthetic MFB Onboarding Dataset
+
+## 1. Overview
+
+- **Dataset name:** Synthetic MFB Onboarding Dataset (50k records)  
+- **Version:** 0.1  
+- **Created:** 2026-08-21  
+- **Authors:** Onome Oviere, Faruq Lawal, Bukunmi Owoseni, Bassey Efe  
+- **License:** [e.g., CC BY 4.0 / MIT / “For research and educational use only”]  
+
+This dataset contains synthetic customer onboarding records simulating institutional onboarding from partner Microfinance Banks (MFBs) in Nigeria. It is designed for developing and testing AI/ML models for compliance, risk scoring, and complaint/compliance classification in a fintech payment platform context.
+
+## 2. Motivation
+
+- **Purpose:** To provide a realistic, privacy‑safe dataset for building and evaluating:
+  - Customer onboarding analytics
+  - Risk scoring models
+  - Compliance and complaint classification pipelines (ICC)
+- **Why synthetic?** Real customer data from MFBs is sensitive and protected by NDPR and CBN regulations. This synthetic dataset mimics realistic distributions without exposing real PII.
+
+## 3. Data Composition
+
+- **Number of records:** 50,000 customers  
+- **Unit of analysis:** One row per customer onboarding record  
+- **Time coverage:** Simulated onboarding dates from 2024-01-01 to 2026-08-18  
+- **Geographic coverage:** All 36 Nigerian states + FCT  
+
+### 3.1 Fields
+
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `customer_id` | string | Unique anonymized customer identifier | `CUST000001` |
+| `mfb_id` | string | Partner MFB identifier | `MFB001` |
+| `mfb_name` | string | Partner MFB name | `Accion Microfinance Bank` |
+| `channel` | string | Onboarding channel | `mobile_app`, `ussd`, `agent`, etc. |
+| `state` | string | Nigerian state of customer | `Lagos`, `Kano`, `Rivers` |
+| `account_type` | string | Type of account opened | `savings`, `current`, `sme_business`, etc. |
+| `kyc_tier` | string | KYC tier assigned | `tier1`, `tier2`, `tier3` |
+| `kyc_verified` | boolean | Whether KYC verification is complete | `True`/`False` |
+| `onboarding_date` | date | Date of onboarding | `2025-03-12` |
+| `risk_score` | float (0–100) | Synthetic risk score | `42.75` |
+| `consent_flag` | boolean | Whether customer consented to data use | `True`/`False` |
+| `api_source` | string | Source system for ingestion | `partner_api_v1`, `internal_etl` |
+| `monthly_avg_balance_ngn` | float | Average monthly balance in NGN | `152340.50` |
+| `monthly_txn_count` | int | Average monthly transaction count | `12` |
+| `is_active_30d` | boolean | Whether active in last 30 days | `True`/`False` |
+
+## 4. Data Collection & Generation Process
+
+- **Method:** Programmatically generated using Python (NumPy, Pandas) with seeded randomization for reproducibility.  
+- **Distributions:**  
+  - Channels, account types, KYC tiers, and activity status use weighted categorical distributions based on typical Nigerian fintech/MFB patterns.  
+  - Risk scores follow a normal distribution clipped to [0, 100].  
+  - Balances follow an exponential distribution to reflect skewed balance profiles.  
+- **Code:** Generation script located at `src/data_generator.py` (update path to your actual script).  
+
+## 5. Preprocessing & Cleaning
+
+- No real-world raw data was used; all records are synthetic.  
+- Transformations applied during generation:
+  - Seeded randomization for reproducibility.
+  - Clipping of risk scores and balances to realistic ranges.
+  - Mapping of MFB IDs to names.
+
+## 6. Intended Use Cases
+
+- Training and evaluating:
+  - Risk scoring models
+  - Customer segmentation
+  - Compliance and complaint classification models (ICC)
+  - Onboarding funnel analytics
+- Not intended for:
+  - Production decisioning on real customers without further validation.
+  - Any use that assumes these are real customer records.
+
+## 7. Limitations & Biases
+
+- **Synthetic nature:** Patterns are approximations and may not fully reflect real MFB customer behavior.  
+- **Bias sources:**  
+  - Assumed distributions for channels, account types, and states may not match any specific real MFB.  
+  - No explicit demographic attributes (age, gender, income) are included; any proxy inference is limited.  
+- **Temporal limitations:** Data covers a fixed simulated period; does not reflect seasonality beyond simple date ranges.
+
+## 8. Ethical & Legal Considerations
+
+- **Privacy:** No real personal data is included; all records are synthetic.  
+- **Compliance:** Designed to align with principles of NDPR and CBN expectations for data protection by using synthetic data in development.  
+- **Risks:**  
+  - Misinterpretation as real customer data could lead to incorrect conclusions.  
+  - Overfitting to synthetic patterns may reduce generalization to real data.
+
+## 9. Maintenance & Versioning
+
+- **Current version:** 0.1  
+- **Update policy:** New versions will be created as the project evolves (e.g., additional fields, improved distributions).  
+- **Contact:** [your team email or GitHub org contact]
+
+## 10. References
+
+- [Link to your GitHub repo]
+- [Any references you used for distributions, e.g., EFInA reports, CBN publications]
